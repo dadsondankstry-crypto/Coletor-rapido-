@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0f1115">
+<title>📥 Coletor Rápido</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+  :root {
+    --bg: #0f1115; --panel: #171a21; --panel-2: #1e222b; --border: #2a2f3a;
+    --text: #e6e8ee; --muted: #8b93a7; --accent: #38bdf8; --accent-2: #10b981;
+    --danger: #ef4444; --danger-bg: rgba(239, 68, 68, 0.1);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    display: flex; flex-direction: column; overflow: hidden;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* ================= TELA INICIAL ================= */
+  #startScreen {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 20px; text-align: center; overflow-y: auto;
+  }
+  #startScreen.hidden { display: none; }
+  .icon-main { font-size: 4rem; margin-bottom: 10px; opacity: 0.8; }
+  
+  .btn-large {
+    background: var(--accent); color: #000; border: none;
+    padding: 16px 24px; border-radius: 12px; font-size: 1rem; font-weight: 700;
+    cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.15s;
+    width: 100%; max-width: 350px; justify-content: center; margin-bottom: 10px;
+  }
+  .btn-large:active { transform: scale(0.98); }
+  .btn-outline {
+    background: transparent; color: var(--text); border: 1px solid var(--border);
+  }
+  .btn-outline.danger { color: var(--danger); border-color: rgba(239,68,68,0.3); margin-top: 15px; font-size: 0.85rem; padding: 10px; }
+  .btn-outline.danger:hover { background: var(--danger-bg); border-color: var(--danger); }
+
+  .config-panel {
+    width: 100%; max-width: 350px; background: var(--panel); border: 1px solid var(--border);
+    border-radius: 12px; padding: 15px; margin-bottom: 15px; display: flex; flex-direction: column; gap: 12px;
+  }
+  .toggle-group {
+    display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text);
+    justify-content: flex-start; cursor: pointer;
+  }
+  .toggle-group input { accent-color: var(--accent); width: 18px; height: 18px; cursor: pointer; }
+  
+  .prompt-status {
+    font-size: 12px; color: var(--accent-2); text-align: left;
+    padding-left: 2px; display: flex; align-items: center; gap: 5px;
+  }
+
+  .app-version {
+    margin-top: 10px; font-size: 0.72rem; color: var(--muted);
+    letter-spacing: 0.05em; font-variant-numeric: tabular-nums;
+  }
+  
+  /* ================= WORKSPACE ================= */
+  #workspace {
+    flex: 1; display: flex; flex-direction: column; height: 100%;
+  }
+  #workspace[hidden] { display: none; }
+
+  .topbar {
+    display: flex; flex-direction: column; gap: 10px;
+    padding: 12px 16px; background: var(--panel); border-bottom: 1px solid var(--border);
+    padding-top: max(12px, env(safe-area-inset-top));
+  }
+  .top-row { display: flex; align-items: center; justify-content: space-between; }
+  
+  .btn-small {
+    background: var(--panel-2); border: 1px solid var(--border); color: var(--text);
+    padding: 8px 10px; border-radius: 8px; font-size: 12px; font-weight: 600;
+    cursor: pointer; transition: .15s; display: flex; align-items: center; gap: 5px;
+  }
+  .btn-small:hover { border-color: var(--accent); color: var(--accent); }
+  
+  .action-row {
+    display: flex; gap: 8px; width: 100%;
+  }
+  .action-row .btn-small { flex: 1; justify-content: center; padding: 10px; font-size: 13px; }
+  .action-row .btn-small:disabled { opacity: 0.4; cursor: not-allowed; border-color: var(--border); color: var(--muted); }
+
+  .main-area {
+    flex: 1; display: flex; flex-direction: column; padding: 16px; gap: 12px; overflow: hidden;
+  }
+
+  .huge-paste-btn {
+    flex: 1; background: var(--panel); border: 3px dashed var(--border); border-radius: 20px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 15px; cursor: pointer; transition: 0.2s; user-select: none;
+  }
+  .huge-paste-btn:hover, .huge-paste-btn:active { border-color: var(--accent); background: rgba(56, 189, 248, 0.05); outline: none; }
+  .huge-paste-btn:active { transform: scale(0.98); }
+  .huge-paste-btn .icon { font-size: 4rem; }
+  .huge-paste-btn .text { font-size: 1.8rem; font-weight: 700; color: var(--text); }
+  .huge-paste-btn .sub { font-size: 1rem; color: var(--muted); text-align: center; padding: 0 10px; }
+
+  .status-bar {
+    text-align: center; font-size: 13px; color: var(--muted); padding: 12px;
+    background: var(--panel-2); border-radius: 8px; border: 1px solid var(--border);
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+  }
+  .status-bar strong { color: var(--accent-2); }
+
+  /* ================= MODAL DE NOME ================= */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px);
+    display: flex; align-items: flex-start; justify-content: center; padding: 20px;
+    padding-top: 15vh; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.2s;
+  }
+  .modal-overlay.show { opacity: 1; pointer-events: auto; }
+  
+  .modal-card {
+    width: 100%; max-width: 400px; background: var(--panel); border: 1px solid var(--border);
+    border-radius: 16px; padding: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    transform: translateY(20px); transition: transform 0.2s;
+  }
+  .modal-overlay.show .modal-card { transform: translateY(0); }
+  
+  .modal-card h3 { font-size: 18px; margin-bottom: 8px; color: var(--text); }
+  .modal-card p { font-size: 14px; color: var(--muted); margin-bottom: 16px; }
+  
+  .name-input {
+    width: 100%; background: var(--panel-2); color: var(--text); border: 2px solid var(--accent);
+    padding: 16px; border-radius: 10px; font-size: 16px; font-weight: 600;
+    outline: none; margin-bottom: 16px;
+  }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+  .modal-actions button {
+    padding: 12px 20px; border-radius: 8px; font-weight: 700; font-size: 14px; cursor: pointer; border: none;
+  }
+  .btn-cancel { background: var(--panel-2); color: var(--text); border: 1px solid var(--border) !important; }
+  .btn-confirm { background: var(--accent); color: #000; }
+
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translate(-50%, 60px);
+    background: var(--panel-2); border: 1px solid var(--border); color: var(--text);
+    padding: 12px 22px; border-radius: 10px; font-size: 13px; z-index: 9999;
+    opacity: 0; transition: 0.3s; pointer-events: none; max-width: 90vw; text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+</style>
+</head>
+<body>
+
+<!-- TELA INICIAL -->
+<div id="startScreen">
+  <div class="icon-main">📂</div>
+  <h2 style="margin-bottom: 5px;">Coletor Rápido</h2>
+  
+  <div class="config-panel">
+    <label class="toggle-group">
+      <input type="checkbox" id="askNameToggleStart" checked>
+      Perguntar o nome do arquivo ao colar
+    </label>
+    
+    <button class="btn-small" id="btnImportPrompt" style="width: 100%; justify-content: center; padding: 12px;">
+      📝 Importar Prompt (.txt)
+    </button>
+    <div class="prompt-status" id="promptStatus">Nenhum prompt carregado.</div>
+  </div>
+  
+  <button class="btn-large" id="btnChooseFolder">
+    📁 Escolher Pasta
+  </button>
+  
+  <button class="btn-large btn-outline" id="btnSkipFolder" style="font-size: 0.9rem; padding: 12px;">
+    Pular (Salvar em Downloads)
+  </button>
+  
+  <button class="btn-large btn-outline danger" id="btnClearCache">
+    🧹 Limpar Cache do App
+  </button>
+  
+  <div class="app-version" id="appVersion">Coletor Rápido · v1.2</div>
+</div>
+
+<!-- ÁREA DE TRABALHO -->
+<div id="workspace" hidden>
+  <div class="topbar">
+    <div class="top-row">
+      <button class="btn-small" id="btnBackStart">⬅️ Voltar</button>
+      <div class="folder-name" id="folderDisplay" style="font-size: 12px; color: var(--muted);">
+        📁 Downloads (Padrão)
+      </div>
+    </div>
+    <div class="action-row">
+      <button class="btn-small" id="btnCopyTitle" disabled>📋 Copiar Título</button>
+      <button class="btn-small" id="btnCopyPrompt" disabled>📝 Copiar Prompt</button>
+    </div>
+  </div>
+
+  <div class="main-area">
+    <button class="huge-paste-btn" id="btnPaste">
+      <span class="icon">📋</span>
+      <span class="text">COLAR E AVANÇAR</span>
+      <span class="sub" id="nextFileName">Próximo: Texto 1.txt</span>
+    </button>
+    
+    <div class="status-bar" id="statusBar">
+      Aguardando o primeiro texto...
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DE NOME -->
+<div class="modal-overlay" id="nameModal">
+  <div class="modal-card">
+    <h3>Salvar texto</h3>
+    <p>Dê um nome para o arquivo ou aperte Enter para salvar.</p>
+    <input type="text" id="nameInput" class="name-input" spellcheck="false" autocomplete="off">
+    <div class="modal-actions">
+      <button class="btn-cancel" id="btnNameCancel">Pular</button>
+      <button class="btn-confirm" id="btnNameConfirm">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- INPUT ESCONDIDO PARA O PROMPT -->
+<input type="file" id="promptFileInput" accept=".txt" hidden>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const APP_VERSION = '1.2';
+  const $ = id => document.getElementById(id);
+  
+  let files = []; 
+  let nextIndex = 1;
+  let askName = true;
+  let baseName = 'Texto';
+  let isModalOpen = false;
+  let dirHandle = null; 
+  let textoAtualPendente = "";
+  
+  let promptText = localStorage.getItem('coletor.prompt') || '';
+
+  // ================= INICIALIZAÇÃO E CONFIGURAÇÕES =================
+  function carregarConfiguracoes() {
+    const savedAskName = localStorage.getItem('coletor.askName');
+    if (savedAskName !== null) {
+      askName = savedAskName === 'true';
+    }
+    $('askNameToggleStart').checked = askName;
+    atualizarStatusPrompt();
+  }
+
+  function atualizarStatusPrompt() {
+    if (promptText) {
+      const preview = promptText.substring(0, 30).replace(/\n/g, ' ') + '...';
+      $('promptStatus').innerHTML = `✅ Prompt carregado: "${preview}"`;
+      $('btnCopyPrompt').disabled = false;
+    } else {
+      $('promptStatus').textContent = 'Nenhum prompt carregado.';
+      $('btnCopyPrompt').disabled = true;
+    }
+  }
+
+  $('askNameToggleStart').addEventListener('change', (e) => {
+    askName = e.target.checked;
+    localStorage.setItem('coletor.askName', askName);
+  });
+
+  $('btnImportPrompt').addEventListener('click', () => $('promptFileInput').click());
+  
+  $('promptFileInput').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      promptText = ev.target.result;
+      localStorage.setItem('coletor.prompt', promptText);
+      atualizarStatusPrompt();
+      mostrarToast('Prompt importado com sucesso!');
+    };
+    reader.readAsText(file, 'UTF-8');
+    e.target.value = '';
+  });
+
+  $('btnClearCache').addEventListener('click', () => {
+    if (confirm('Isso vai apagar o prompt salvo e as configurações. Os arquivos já salvos na pasta NÃO serão apagados. Continuar?')) {
+      localStorage.removeItem('coletor.prompt');
+      localStorage.removeItem('coletor.askName');
+      promptText = '';
+      askName = true;
+      $('askNameToggleStart').checked = true;
+      atualizarStatusPrompt();
+      mostrarToast('Cache limpo.');
+    }
+  });
+
+  // ================= CONTROLE DE TELAS =================
+  function iniciarSessao() {
+    $('startScreen').classList.add('hidden');
+    $('workspace').hidden = false;
+    atualizarUI();
+    setTimeout(() => $('btnPaste').focus(), 100);
+  }
+
+  $('btnBackStart').addEventListener('click', () => {
+    $('workspace').hidden = true;
+    $('startScreen').classList.remove('hidden');
+  });
+
+  // ================= SELECIONAR PASTA =================
+  $('btnChooseFolder').addEventListener('click', async () => {
+    try {
+      dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+      $('folderDisplay').textContent = `📁 ${dirHandle.name}`;
+      iniciarSessao();
+    } catch (err) {
+      if (err.name !== 'AbortError') {
+        mostrarToast('Erro ao selecionar pasta. Tentando modo de download...');
+        dirHandle = null;
+        $('folderDisplay').textContent = '📁 Downloads (Padrão)';
+        iniciarSessao();
+      }
+    }
+  });
+
+  $('btnSkipFolder').addEventListener('click', () => {
+    dirHandle = null;
+    $('folderDisplay').textContent = '📁 Downloads (Padrão)';
+    iniciarSessao();
+  });
+
+  // ================= FUNÇÕES DE CÓPIA =================
+  $('btnCopyTitle').addEventListener('click', async () => {
+    if (files.length === 0) return;
+    const ultimoNome = files[files.length - 1].nome.replace(/\.[^.]+$/, '');
+    try {
+      await navigator.clipboard.writeText(ultimoNome);
+      mostrarToast(`Título copiado: "${ultimoNome}"`);
+    } catch (err) {
+      mostrarToast('Erro ao copiar. Seu navegador bloqueou.');
+    }
+  });
+
+  $('btnCopyPrompt').addEventListener('click', async () => {
+    if (!promptText) return;
+    try {
+      await navigator.clipboard.writeText(promptText);
+      mostrarToast('Prompt copiado para a área de transferência!');
+    } catch (err) {
+      mostrarToast('Erro ao copiar. Seu navegador bloqueou.');
+    }
+  });
+
+  // ================= FUNÇÃO DE EXTRAIR TÍTULO =================
+  function extrairTitulo(texto) {
+    const match = texto.match(/^\s*📌\s*TÍTULO:\s*(.+)$/im);
+    if (match && match[1]) {
+      let titulo = match[1].trim().replace(/[\/\\:\*\?"<>\|]/g, '-');
+      if (titulo.length > 60) titulo = titulo.substring(0, 57) + '...';
+      return titulo;
+    }
+    return null;
+  }
+
+  // ================= FUNÇÃO DE SALVAR =================
+  async function salvarArquivo(nome, conteudo) {
+    if (dirHandle) {
+      try {
+        const fileHandle = await dirHandle.getFileHandle(nome, { create: true });
+        const writable = await fileHandle.createWritable();
+        await writable.write(conteudo);
+        await writable.close();
+        return true;
+      } catch (err) {
+        console.error("Erro ao salvar na pasta:", err);
+        mostrarToast('Erro na pasta. Salvando em Downloads.');
+        baixarArquivo(nome, conteudo);
+        return false;
+      }
+    } else {
+      baixarArquivo(nome, conteudo);
+      return true;
+    }
+  }
+
+  function baixarArquivo(nome, conteudo) {
+    const blob = new Blob([conteudo], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = nome;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1500);
+  }
+
+  // ================= FUNÇÃO DE COLAR =================
+  async function executarPaste() {
+    if (isModalOpen) return;
+
+    try {
+      if (!navigator.clipboard || !navigator.clipboard.readText) {
+        throw new Error('API indisponível');
+      }
+      
+      const text = await navigator.clipboard.readText();
+      
+      if (!text || !text.trim()) {
+        mostrarToast('A área de transferência está vazia.');
+        return;
+      }
+
+      processarTextoColado(text);
+
+    } catch (err) {
+      mostrarToast('Não foi possível ler automaticamente. Use Ctrl+V (ou segure e cole).');
+      fallbackPaste();
+    }
+  }
+
+  function fallbackPaste() {
+    const ta = document.createElement('textarea');
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.focus();
+    
+    ta.addEventListener('paste', (e) => {
+      const text = e.clipboardData.getData('text');
+      if (text && text.trim()) {
+        processarTextoColado(text);
+      }
+      ta.remove();
+    });
+  }
+
+  async function processarTextoColado(text) {
+    if (askName) {
+      abrirModalNome(text);
+    } else {
+      const tituloExtraido = extrairTitulo(text);
+      const nome = tituloExtraido ? `${tituloExtraido}.md` : `${baseName} ${nextIndex}.txt`;
+      
+      await salvarArquivo(nome, text);
+      salvarTexto(text, nome);
+      avancar();
+    }
+  }
+
+  // ================= MODAL DE NOME =================
+  function abrirModalNome(texto) {
+    isModalOpen = true;
+    textoAtualPendente = texto;
+    const modal = $('nameModal');
+    const input = $('nameInput');
+    
+    const tituloExtraido = extrairTitulo(texto);
+    input.value = tituloExtraido ? tituloExtraido : `${baseName} ${nextIndex}`;
+    
+    modal.classList.add('show');
+    
+    setTimeout(() => {
+      input.focus();
+      input.select();
+    }, 150);
+  }
+
+  $('btnNameConfirm').onclick = () => confirmarNome();
+  
+  $('btnNameCancel').onclick = async () => {
+    fecharModalNome();
+    const nome = `${baseName} ${nextIndex}.txt`;
+    await salvarArquivo(nome, textoAtualPendente);
+    salvarTexto(textoAtualPendente, nome);
+    avancar();
+  };
+
+  $('nameInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      confirmarNome();
+    }
+  });
+
+  async function confirmarNome() {
+    let nome = $('nameInput').value.trim();
+    if (!nome) nome = `${baseName} ${nextIndex}`;
+    if (!/\.[^.]+$/.test(nome)) nome += '.txt';
+    
+    fecharModalNome();
+    
+    $('statusBar').innerHTML = `Salvando <strong>${nome}</strong>...`;
+    
+    await salvarArquivo(nome, textoAtualPendente);
+    salvarTexto(textoAtualPendente, nome);
+    avancar();
+  }
+
+  function fecharModalNome() {
+    $('nameModal').classList.remove('show');
+    isModalOpen = false;
+    setTimeout(() => $('btnPaste').focus(), 50);
+  }
+
+  function salvarTexto(texto, nome) {
+    files.push({ nome, conteudo: texto });
+    nextIndex++;
+    mostrarToast(`✅ Salvo: ${nome}`);
+    $('btnCopyTitle').disabled = false;
+  }
+
+  function avancar() {
+    atualizarUI();
+  }
+
+  function atualizarUI() {
+    $('nextFileName').textContent = `Próximo: ${baseName} ${nextIndex}.txt`;
+    
+    if (files.length > 0) {
+      const ultimo = files[files.length - 1];
+      $('statusBar').innerHTML = `Último salvo: <strong>${ultimo.nome}</strong> (${ultimo.conteudo.length.toLocaleString('pt-BR')} car.)`;
+    } else {
+      $('statusBar').textContent = 'Aguardando o primeiro texto...';
+    }
+  }
+
+  $('btnPaste').addEventListener('click', executarPaste);
+
+  $('btnPaste').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      executarPaste();
+    }
+  });
+
+  document.addEventListener('paste', (e) => {
+    if (isModalOpen) return;
+    const alvo = e.target;
+    if (alvo && (alvo.tagName === 'INPUT' || alvo.tagName === 'TEXTAREA' || alvo.isContentEditable)) return;
+    
+    const texto = e.clipboardData?.getData('text');
+    if (!texto || !texto.trim()) return;
+    e.preventDefault();
+    
+    processarTextoColado(texto);
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && isModalOpen) {
+      fecharModalNome();
+      mostrarToast('Colagem cancelada.');
+    }
+  });
+
+  function mostrarToast(msg) {
+    const t = $('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(mostrarToast._t);
+    mostrarToast._t = setTimeout(() => t.classList.remove('show'), 2500);
+  }
+
+  // Init
+  $('appVersion').textContent = 'Coletor Rápido · v' + APP_VERSION;
+  carregarConfiguracoes();
+
+  // ================= REGISTRO DO SERVICE WORKER (PWA) =================
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js')
+        .then(registration => {
+          console.log('ServiceWorker registrado com sucesso:', registration.scope);
+        })
+        .catch(error => {
+          console.log('Falha no registro do ServiceWorker:', error);
+        });
+    });
+  }
+</script>
+</body>
+</html>
