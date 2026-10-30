@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#0f1115">
-<title>📥 Coletor Rápido</title>
+<title>📥 Coletor Rápido v1.5</title>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -207,7 +207,7 @@
     🧹 Limpar Cache do App
   </button>
 
-  <div class="app-version" id="appVersion">Coletor Rápido · v1.4</div>
+  <div class="app-version" id="appVersion">Coletor Rápido · v1.5</div>
 </div>
 
 <!-- ÁREA DE TRABALHO -->
@@ -219,7 +219,7 @@
         <div class="folder-name" id="folderDisplay" style="font-size: 12px; color: var(--muted);">
           📁 Downloads (Padrão)
         </div>
-        <span class="version-badge" id="versionBadgeTop">v1.4</span>
+        <span class="version-badge" id="versionBadgeTop">v1.5</span>
       </div>
     </div>
     <div class="action-row">
@@ -260,7 +260,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-  const APP_VERSION = '1.4';
+  const APP_VERSION = '1.5';
   const $ = id => document.getElementById(id);
 
   let files = [];
@@ -275,8 +275,6 @@
 
   // ================= UTILITÁRIOS DE TEXTO =================
 
-  // Normaliza texto vindo do clipboard para busca de título.
-  // Remove BOM, zero-width spaces/joints, converte NBSP em espaço comum.
   function normalizarParaBusca(text) {
     if (!text) return '';
     return String(text)
@@ -287,30 +285,28 @@
       .replace(/\r/g, '\n');
   }
 
-  // Sanitiza um nome para ser usado como nome de arquivo seguro.
-  // Remove markdown, emojis, caracteres inválidos e colapsa repetições.
   function sanitizarNome(raw) {
     let s = String(raw == null ? '' : raw);
 
-    // remove markdown de negrito/itálico
+    // Remove markdown
     s = s.replace(/\*\*|__/g, '');
 
-    // remove emojis (Extended_Pictographic); fallback silencioso se não suportado
+    // Remove emojis
     try { s = s.replace(/\p{Extended_Pictographic}/gu, ''); } catch (e) { /* ignore */ }
 
-    // substitui caracteres inválidos em nomes de arquivo (e outros problemáticos) por espaço
-    s = s.replace(/[\/\\:\*\?"<>\|\[\]\{\}#%~@!\$&\(\)\+=;,`'\^]/g, ' ');
+    // Substitui caracteres inválidos e símbolos problemáticos (setas, travessões, etc) por espaço
+    s = s.replace(/[\/\\:\*\?"<>\|\[\]\{\}#%~@!\$&\(\)\+=;,`'\^—–→←↓↑•●▪▫]/g, ' ');
 
-    // remove caracteres de controle
+    // Remove caracteres de controle
     s = s.replace(/[\x00-\x1F\x7F]/g, '');
 
-    // colapsa espaços e hífens repetidos
+    // Colapsa espaços e hífens repetidos
     s = s.replace(/\s+/g, ' ').replace(/-{2,}/g, '-');
 
-    // apara espaços, pontos e hífens nas pontas
+    // Apara espaços, pontos e hífens nas pontas
     s = s.replace(/^[\s.\-]+|[\s.\-]+$/g, '');
 
-    // limita tamanho para segurança (preserva final se estourar)
+    // Limita tamanho
     if (s.length > 80) {
       s = s.substring(0, 77).replace(/[\s.\-]+$/g, '') + '...';
     }
@@ -318,19 +314,34 @@
     return s;
   }
 
-  // Extrai o título de um texto buscando nas 5 primeiras linhas.
-  // Aceita: emoji opcional (📌/📍), "#" markdown opcional,
-  // TÍTULO/TITULO/TITLE (case-insensitive), separador : - — – = .
   function extrairTitulo(textoOriginal) {
     const texto = normalizarParaBusca(textoOriginal);
-    const linhas = texto.split('\n').slice(0, 5);
-    const re = /^\s*(?:📌|📍)?\s*(?:#+\s*)?(?:T[ÍI]TULO|TITLE)\s*[:=\-–—]\s*(.+)$/i;
+    // Aumentado para 10 linhas, pois às vezes as primeiras linhas são bordas (===)
+    const linhas = texto.split('\n').slice(0, 10);
 
-    for (const linha of linhas) {
-      const m = linha.match(re);
+    for (let linha of linhas) {
+      linha = linha.trim();
+      // Remove asteriscos de negrito que o ChatGPT costuma colocar no início
+      linha = linha.replace(/^\*\*|\*\*$/g, '').trim();
+      if (!linha) continue;
+
+      // Padrão 1: Título explícito com a palavra TÍTULO/TITLE (com ou sem emoji)
+      const reExplicito = /^(?:#+\s*)?(?:📌|📍)?\s*(?:T[ÍI]TULO|TITLE)\s*[:=\-–—]\s*(.+)$/i;
+      let m = linha.match(reExplicito);
       if (m && m[1]) {
         const titulo = sanitizarNome(m[1]);
         if (titulo) return titulo;
+      }
+
+      // Padrão 2: Título implícito (Apenas o pino 📌 seguido do texto)
+      const reImplicito = /^(?:#+\s*)?(?:📌|📍)\s*(.+)$/i;
+      m = linha.match(reImplicito);
+      if (m && m[1]) {
+        const titulo = sanitizarNome(m[1]);
+        // Garante que não pegou apenas um caractere lixo
+        if (titulo && titulo.length > 2) {
+           return titulo;
+        }
       }
     }
     return null;
@@ -367,7 +378,6 @@
     }
   }
 
-  // Atualiza os botões da tela inicial conforme exista ou não pasta escolhida.
   function atualizarBotoesPasta() {
     const btnChoose = $('btnChooseFolder');
     const btnChange = $('btnChangeFolder');
@@ -428,13 +438,11 @@
   $('btnBackStart').addEventListener('click', () => {
     $('workspace').hidden = true;
     $('startScreen').classList.remove('hidden');
-    // Não mexe em dirHandle: ao voltar, o botão "Continuar em [pasta]" já aparece.
     atualizarBotoesPasta();
   });
 
   // ================= SELECIONAR PASTA =================
   $('btnChooseFolder').addEventListener('click', async () => {
-    // Se já temos pasta escolhida, "Continuar" entra direto sem reabrir o picker.
     if (dirHandle) {
       iniciarSessao();
       return;
@@ -453,7 +461,6 @@
     }
   });
 
-  // Botão pequeno "Trocar Pasta" (só aparece quando já há pasta escolhida).
   $('btnChangeFolder').addEventListener('click', async () => {
     try {
       dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
@@ -618,11 +625,6 @@
     }
   });
 
-  // Resolve o nome final digitado no modal:
-  // - sempre sanitiza o "miolo" (parte antes da extensão);
-  // - se o usuário digitou extensão explícita (2 a 6 alfanuméricos), respeita;
-  // - caso contrário, força .txt;
-  // - se ficar vazio após sanitizar, cai no fallback "Texto N.txt".
   function resolverNomeDoModal(rawValue) {
     const fallback = `${baseName} ${nextIndex}`;
     let nome = String(rawValue || '').trim();
@@ -716,9 +718,7 @@
   }
 
   // Init
-  // Rodapé com badge de versão (A)
   $('appVersion').innerHTML = `Coletor Rápido · <span class="version-badge">v${APP_VERSION}</span>`;
-  // Badge de versão no topo do workspace (B)
   $('versionBadgeTop').textContent = 'v' + APP_VERSION;
 
   carregarConfiguracoes();
