@@ -31,7 +31,7 @@
   }
   #startScreen.hidden { display: none; }
   .icon-main { font-size: 4rem; margin-bottom: 10px; opacity: 0.8; }
-  
+
   .btn-large {
     background: var(--accent); color: #000; border: none;
     padding: 16px 24px; border-radius: 12px; font-size: 1rem; font-weight: 700;
@@ -54,17 +54,37 @@
     justify-content: flex-start; cursor: pointer;
   }
   .toggle-group input { accent-color: var(--accent); width: 18px; height: 18px; cursor: pointer; }
-  
+
   .prompt-status {
     font-size: 12px; color: var(--accent-2); text-align: left;
     padding-left: 2px; display: flex; align-items: center; gap: 5px;
   }
 
+  .folder-row { display: flex; gap: 8px; width: 100%; max-width: 350px; margin-bottom: 10px; }
+  .folder-row .btn-large { margin-bottom: 0; flex: 1; }
+  .folder-row .btn-small {
+    background: var(--panel-2); border: 1px solid var(--border); color: var(--text);
+    padding: 0 14px; border-radius: 12px; font-size: 12px; font-weight: 600;
+    cursor: pointer; display: none;
+  }
+  .folder-row .btn-small:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Rodapé com badge de versão */
   .app-version {
     margin-top: 10px; font-size: 0.72rem; color: var(--muted);
     letter-spacing: 0.05em; font-variant-numeric: tabular-nums;
+    display: inline-flex; align-items: center; gap: 6px;
   }
-  
+  .version-badge {
+    display: inline-block;
+    background: var(--accent); color: #000;
+    padding: 2px 8px; border-radius: 999px;
+    font-weight: 700; font-size: 0.68rem;
+    letter-spacing: 0.02em;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.4;
+  }
+
   /* ================= WORKSPACE ================= */
   #workspace {
     flex: 1; display: flex; flex-direction: column; height: 100%;
@@ -77,14 +97,14 @@
     padding-top: max(12px, env(safe-area-inset-top));
   }
   .top-row { display: flex; align-items: center; justify-content: space-between; }
-  
+
   .btn-small {
     background: var(--panel-2); border: 1px solid var(--border); color: var(--text);
     padding: 8px 10px; border-radius: 8px; font-size: 12px; font-weight: 600;
     cursor: pointer; transition: .15s; display: flex; align-items: center; gap: 5px;
   }
   .btn-small:hover { border-color: var(--accent); color: var(--accent); }
-  
+
   .action-row {
     display: flex; gap: 8px; width: 100%;
   }
@@ -120,17 +140,17 @@
     padding-top: 15vh; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.2s;
   }
   .modal-overlay.show { opacity: 1; pointer-events: auto; }
-  
+
   .modal-card {
     width: 100%; max-width: 400px; background: var(--panel); border: 1px solid var(--border);
     border-radius: 16px; padding: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);
     transform: translateY(20px); transition: transform 0.2s;
   }
   .modal-overlay.show .modal-card { transform: translateY(0); }
-  
+
   .modal-card h3 { font-size: 18px; margin-bottom: 8px; color: var(--text); }
   .modal-card p { font-size: 14px; color: var(--muted); margin-bottom: 16px; }
-  
+
   .name-input {
     width: 100%; background: var(--panel-2); color: var(--text); border: 2px solid var(--accent);
     padding: 16px; border-radius: 10px; font-size: 16px; font-weight: 600;
@@ -159,32 +179,35 @@
 <div id="startScreen">
   <div class="icon-main">📂</div>
   <h2 style="margin-bottom: 5px;">Coletor Rápido</h2>
-  
+
   <div class="config-panel">
     <label class="toggle-group">
       <input type="checkbox" id="askNameToggleStart" checked>
       Perguntar o nome do arquivo ao colar
     </label>
-    
+
     <button class="btn-small" id="btnImportPrompt" style="width: 100%; justify-content: center; padding: 12px;">
       📝 Importar Prompt (.txt)
     </button>
     <div class="prompt-status" id="promptStatus">Nenhum prompt carregado.</div>
   </div>
-  
-  <button class="btn-large" id="btnChooseFolder">
-    📁 Escolher Pasta
-  </button>
-  
+
+  <div class="folder-row">
+    <button class="btn-large" id="btnChooseFolder">
+      📁 Escolher Pasta
+    </button>
+    <button class="btn-small" id="btnChangeFolder" title="Escolher outra pasta">🔄</button>
+  </div>
+
   <button class="btn-large btn-outline" id="btnSkipFolder" style="font-size: 0.9rem; padding: 12px;">
     Pular (Salvar em Downloads)
   </button>
-  
+
   <button class="btn-large btn-outline danger" id="btnClearCache">
     🧹 Limpar Cache do App
   </button>
-  
-  <div class="app-version" id="appVersion">Coletor Rápido · v1.2</div>
+
+  <div class="app-version" id="appVersion">Coletor Rápido · v1.4</div>
 </div>
 
 <!-- ÁREA DE TRABALHO -->
@@ -192,8 +215,11 @@
   <div class="topbar">
     <div class="top-row">
       <button class="btn-small" id="btnBackStart">⬅️ Voltar</button>
-      <div class="folder-name" id="folderDisplay" style="font-size: 12px; color: var(--muted);">
-        📁 Downloads (Padrão)
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <div class="folder-name" id="folderDisplay" style="font-size: 12px; color: var(--muted);">
+          📁 Downloads (Padrão)
+        </div>
+        <span class="version-badge" id="versionBadgeTop">v1.4</span>
       </div>
     </div>
     <div class="action-row">
@@ -208,7 +234,7 @@
       <span class="text">COLAR E AVANÇAR</span>
       <span class="sub" id="nextFileName">Próximo: Texto 1.txt</span>
     </button>
-    
+
     <div class="status-bar" id="statusBar">
       Aguardando o primeiro texto...
     </div>
@@ -234,18 +260,90 @@
 <div class="toast" id="toast"></div>
 
 <script>
-  const APP_VERSION = '1.2';
+  const APP_VERSION = '1.4';
   const $ = id => document.getElementById(id);
-  
-  let files = []; 
+
+  let files = [];
   let nextIndex = 1;
   let askName = true;
   let baseName = 'Texto';
   let isModalOpen = false;
-  let dirHandle = null; 
+  let dirHandle = null;
   let textoAtualPendente = "";
-  
+
   let promptText = localStorage.getItem('coletor.prompt') || '';
+
+  // ================= UTILITÁRIOS DE TEXTO =================
+
+  // Normaliza texto vindo do clipboard para busca de título.
+  // Remove BOM, zero-width spaces/joints, converte NBSP em espaço comum.
+  function normalizarParaBusca(text) {
+    if (!text) return '';
+    return String(text)
+      .replace(/\uFEFF/g, '')
+      .replace(/[\u200B-\u200D\u2060]/g, '')
+      .replace(/\u00A0/g, ' ')
+      .replace(/\r\n/g, '\n')
+      .replace(/\r/g, '\n');
+  }
+
+  // Sanitiza um nome para ser usado como nome de arquivo seguro.
+  // Remove markdown, emojis, caracteres inválidos e colapsa repetições.
+  function sanitizarNome(raw) {
+    let s = String(raw == null ? '' : raw);
+
+    // remove markdown de negrito/itálico
+    s = s.replace(/\*\*|__/g, '');
+
+    // remove emojis (Extended_Pictographic); fallback silencioso se não suportado
+    try { s = s.replace(/\p{Extended_Pictographic}/gu, ''); } catch (e) { /* ignore */ }
+
+    // substitui caracteres inválidos em nomes de arquivo (e outros problemáticos) por espaço
+    s = s.replace(/[\/\\:\*\?"<>\|\[\]\{\}#%~@!\$&\(\)\+=;,`'\^]/g, ' ');
+
+    // remove caracteres de controle
+    s = s.replace(/[\x00-\x1F\x7F]/g, '');
+
+    // colapsa espaços e hífens repetidos
+    s = s.replace(/\s+/g, ' ').replace(/-{2,}/g, '-');
+
+    // apara espaços, pontos e hífens nas pontas
+    s = s.replace(/^[\s.\-]+|[\s.\-]+$/g, '');
+
+    // limita tamanho para segurança (preserva final se estourar)
+    if (s.length > 80) {
+      s = s.substring(0, 77).replace(/[\s.\-]+$/g, '') + '...';
+    }
+
+    return s;
+  }
+
+  // Extrai o título de um texto buscando nas 5 primeiras linhas.
+  // Aceita: emoji opcional (📌/📍), "#" markdown opcional,
+  // TÍTULO/TITULO/TITLE (case-insensitive), separador : - — – = .
+  function extrairTitulo(textoOriginal) {
+    const texto = normalizarParaBusca(textoOriginal);
+    const linhas = texto.split('\n').slice(0, 5);
+    const re = /^\s*(?:📌|📍)?\s*(?:#+\s*)?(?:T[ÍI]TULO|TITLE)\s*[:=\-–—]\s*(.+)$/i;
+
+    for (const linha of linhas) {
+      const m = linha.match(re);
+      if (m && m[1]) {
+        const titulo = sanitizarNome(m[1]);
+        if (titulo) return titulo;
+      }
+    }
+    return null;
+  }
+
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
 
   // ================= INICIALIZAÇÃO E CONFIGURAÇÕES =================
   function carregarConfiguracoes() {
@@ -255,17 +353,34 @@
     }
     $('askNameToggleStart').checked = askName;
     atualizarStatusPrompt();
+    atualizarBotoesPasta();
   }
 
   function atualizarStatusPrompt() {
     if (promptText) {
       const preview = promptText.substring(0, 30).replace(/\n/g, ' ') + '...';
-      $('promptStatus').innerHTML = `✅ Prompt carregado: "${preview}"`;
+      $('promptStatus').innerHTML = `✅ Prompt carregado: "${escapeHtml(preview)}"`;
       $('btnCopyPrompt').disabled = false;
     } else {
       $('promptStatus').textContent = 'Nenhum prompt carregado.';
       $('btnCopyPrompt').disabled = true;
     }
+  }
+
+  // Atualiza os botões da tela inicial conforme exista ou não pasta escolhida.
+  function atualizarBotoesPasta() {
+    const btnChoose = $('btnChooseFolder');
+    const btnChange = $('btnChangeFolder');
+    if (dirHandle) {
+      btnChoose.textContent = `📁 Continuar em ${dirHandle.name}`;
+      btnChange.style.display = 'flex';
+    } else {
+      btnChoose.textContent = '📁 Escolher Pasta';
+      btnChange.style.display = 'none';
+    }
+    $('folderDisplay').textContent = dirHandle
+      ? `📁 ${dirHandle.name}`
+      : '📁 Downloads (Padrão)';
   }
 
   $('askNameToggleStart').addEventListener('change', (e) => {
@@ -274,7 +389,7 @@
   });
 
   $('btnImportPrompt').addEventListener('click', () => $('promptFileInput').click());
-  
+
   $('promptFileInput').addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -305,6 +420,7 @@
   function iniciarSessao() {
     $('startScreen').classList.add('hidden');
     $('workspace').hidden = false;
+    atualizarBotoesPasta();
     atualizarUI();
     setTimeout(() => $('btnPaste').focus(), 100);
   }
@@ -312,27 +428,47 @@
   $('btnBackStart').addEventListener('click', () => {
     $('workspace').hidden = true;
     $('startScreen').classList.remove('hidden');
+    // Não mexe em dirHandle: ao voltar, o botão "Continuar em [pasta]" já aparece.
+    atualizarBotoesPasta();
   });
 
   // ================= SELECIONAR PASTA =================
   $('btnChooseFolder').addEventListener('click', async () => {
+    // Se já temos pasta escolhida, "Continuar" entra direto sem reabrir o picker.
+    if (dirHandle) {
+      iniciarSessao();
+      return;
+    }
     try {
       dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
-      $('folderDisplay').textContent = `📁 ${dirHandle.name}`;
+      atualizarBotoesPasta();
       iniciarSessao();
     } catch (err) {
       if (err.name !== 'AbortError') {
         mostrarToast('Erro ao selecionar pasta. Tentando modo de download...');
         dirHandle = null;
-        $('folderDisplay').textContent = '📁 Downloads (Padrão)';
+        atualizarBotoesPasta();
         iniciarSessao();
+      }
+    }
+  });
+
+  // Botão pequeno "Trocar Pasta" (só aparece quando já há pasta escolhida).
+  $('btnChangeFolder').addEventListener('click', async () => {
+    try {
+      dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+      atualizarBotoesPasta();
+      mostrarToast(`Pasta alterada para: ${dirHandle.name}`);
+    } catch (err) {
+      if (err.name !== 'AbortError') {
+        mostrarToast('Não foi possível trocar a pasta.');
       }
     }
   });
 
   $('btnSkipFolder').addEventListener('click', () => {
     dirHandle = null;
-    $('folderDisplay').textContent = '📁 Downloads (Padrão)';
+    atualizarBotoesPasta();
     iniciarSessao();
   });
 
@@ -357,17 +493,6 @@
       mostrarToast('Erro ao copiar. Seu navegador bloqueou.');
     }
   });
-
-  // ================= FUNÇÃO DE EXTRAIR TÍTULO =================
-  function extrairTitulo(texto) {
-    const match = texto.match(/^\s*📌\s*TÍTULO:\s*(.+)$/im);
-    if (match && match[1]) {
-      let titulo = match[1].trim().replace(/[\/\\:\*\?"<>\|]/g, '-');
-      if (titulo.length > 60) titulo = titulo.substring(0, 57) + '...';
-      return titulo;
-    }
-    return null;
-  }
 
   // ================= FUNÇÃO DE SALVAR =================
   async function salvarArquivo(nome, conteudo) {
@@ -410,9 +535,9 @@
       if (!navigator.clipboard || !navigator.clipboard.readText) {
         throw new Error('API indisponível');
       }
-      
+
       const text = await navigator.clipboard.readText();
-      
+
       if (!text || !text.trim()) {
         mostrarToast('A área de transferência está vazia.');
         return;
@@ -432,7 +557,7 @@
     ta.style.opacity = '0';
     document.body.appendChild(ta);
     ta.focus();
-    
+
     ta.addEventListener('paste', (e) => {
       const text = e.clipboardData.getData('text');
       if (text && text.trim()) {
@@ -446,9 +571,12 @@
     if (askName) {
       abrirModalNome(text);
     } else {
+      // Caminho automático: SEMPRE .txt
       const tituloExtraido = extrairTitulo(text);
-      const nome = tituloExtraido ? `${tituloExtraido}.md` : `${baseName} ${nextIndex}.txt`;
-      
+      const nome = tituloExtraido
+        ? `${tituloExtraido}.txt`
+        : `${baseName} ${nextIndex}.txt`;
+
       await salvarArquivo(nome, text);
       salvarTexto(text, nome);
       avancar();
@@ -461,12 +589,12 @@
     textoAtualPendente = texto;
     const modal = $('nameModal');
     const input = $('nameInput');
-    
+
     const tituloExtraido = extrairTitulo(texto);
     input.value = tituloExtraido ? tituloExtraido : `${baseName} ${nextIndex}`;
-    
+
     modal.classList.add('show');
-    
+
     setTimeout(() => {
       input.focus();
       input.select();
@@ -474,7 +602,7 @@
   }
 
   $('btnNameConfirm').onclick = () => confirmarNome();
-  
+
   $('btnNameCancel').onclick = async () => {
     fecharModalNome();
     const nome = `${baseName} ${nextIndex}.txt`;
@@ -490,15 +618,34 @@
     }
   });
 
+  // Resolve o nome final digitado no modal:
+  // - sempre sanitiza o "miolo" (parte antes da extensão);
+  // - se o usuário digitou extensão explícita (2 a 6 alfanuméricos), respeita;
+  // - caso contrário, força .txt;
+  // - se ficar vazio após sanitizar, cai no fallback "Texto N.txt".
+  function resolverNomeDoModal(rawValue) {
+    const fallback = `${baseName} ${nextIndex}`;
+    let nome = String(rawValue || '').trim();
+    if (!nome) return fallback + '.txt';
+
+    const extMatch = nome.match(/\.([a-zA-Z0-9]{2,6})$/);
+    if (extMatch) {
+      const base = sanitizarNome(nome.slice(0, -extMatch[0].length));
+      const ext = '.' + extMatch[1].toLowerCase();
+      return (base || fallback) + ext;
+    } else {
+      const base = sanitizarNome(nome);
+      return (base || fallback) + '.txt';
+    }
+  }
+
   async function confirmarNome() {
-    let nome = $('nameInput').value.trim();
-    if (!nome) nome = `${baseName} ${nextIndex}`;
-    if (!/\.[^.]+$/.test(nome)) nome += '.txt';
-    
+    const nome = resolverNomeDoModal($('nameInput').value);
+
     fecharModalNome();
-    
-    $('statusBar').innerHTML = `Salvando <strong>${nome}</strong>...`;
-    
+
+    $('statusBar').innerHTML = `Salvando <strong>${escapeHtml(nome)}</strong>...`;
+
     await salvarArquivo(nome, textoAtualPendente);
     salvarTexto(textoAtualPendente, nome);
     avancar();
@@ -523,10 +670,10 @@
 
   function atualizarUI() {
     $('nextFileName').textContent = `Próximo: ${baseName} ${nextIndex}.txt`;
-    
+
     if (files.length > 0) {
       const ultimo = files[files.length - 1];
-      $('statusBar').innerHTML = `Último salvo: <strong>${ultimo.nome}</strong> (${ultimo.conteudo.length.toLocaleString('pt-BR')} car.)`;
+      $('statusBar').innerHTML = `Último salvo: <strong>${escapeHtml(ultimo.nome)}</strong> (${ultimo.conteudo.length.toLocaleString('pt-BR')} car.)`;
     } else {
       $('statusBar').textContent = 'Aguardando o primeiro texto...';
     }
@@ -545,11 +692,11 @@
     if (isModalOpen) return;
     const alvo = e.target;
     if (alvo && (alvo.tagName === 'INPUT' || alvo.tagName === 'TEXTAREA' || alvo.isContentEditable)) return;
-    
+
     const texto = e.clipboardData?.getData('text');
     if (!texto || !texto.trim()) return;
     e.preventDefault();
-    
+
     processarTextoColado(texto);
   });
 
@@ -569,7 +716,11 @@
   }
 
   // Init
-  $('appVersion').textContent = 'Coletor Rápido · v' + APP_VERSION;
+  // Rodapé com badge de versão (A)
+  $('appVersion').innerHTML = `Coletor Rápido · <span class="version-badge">v${APP_VERSION}</span>`;
+  // Badge de versão no topo do workspace (B)
+  $('versionBadgeTop').textContent = 'v' + APP_VERSION;
+
   carregarConfiguracoes();
 
   // ================= REGISTRO DO SERVICE WORKER (PWA) =================
